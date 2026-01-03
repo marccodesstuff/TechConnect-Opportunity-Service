@@ -1,0 +1,13 @@
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\repository\OpportunityRepository.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\validation\DateRangeValid.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\dto\ApiResponse.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\service\impl\OpportunityServiceImpl.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\dto\OpportunityCreateRequest.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\exception\GlobalExceptionHandler.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\validation\DateRangeValidator.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\model\Opportunity.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\service\OpportunityService.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\dto\OpportunityResponse.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\model\OpportunityType.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\controller\OpportunityController.java
+C:\Users\marcv\Code\techconnect\tp-opportunity-service\src\main\java\com\techconnect\opportunity\OpportunityServiceApplication.java
