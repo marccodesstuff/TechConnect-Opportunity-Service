@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: tp-opportunity-service
+    name: opportunity-service
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://db:5432/techconnect}
     username: ${POSTGRES_USER:postgres}
@@ -16,6 +16,11 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://discovery-server:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    hostname: opportunity-service
 
 management:
   endpoints:
