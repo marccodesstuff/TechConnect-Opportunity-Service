@@ -15,9 +15,11 @@ import java.util.List;
 public class OpportunityController {
 
     private final OpportunityService service;
+    private final com.techconnect.opportunity.security.JwtUtil jwtUtil;
 
-    public OpportunityController(OpportunityService service) {
+    public OpportunityController(OpportunityService service, com.techconnect.opportunity.security.JwtUtil jwtUtil) {
         this.service = service;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping
@@ -61,5 +63,51 @@ public class OpportunityController {
     @DeleteMapping("/{id}/favorite")
     public ResponseEntity<ApiResponse> removeFavorite(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.of(200, "Removed from favorites", null));
+    }
+
+    private String getUsernameFromToken(String token) {
+        if (token != null && token.startsWith("Bearer ")) {
+            return jwtUtil.extractUsername(token.substring(7));
+        }
+        throw new RuntimeException("Invalid token");
+    }
+
+    @PostMapping("/{id}/team-requests")
+    public ResponseEntity<ApiResponse> joinTeamLobby(@PathVariable Long id,
+            @RequestHeader("Authorization") String token,
+            @RequestBody java.util.Map<String, String> body) {
+        String username = getUsernameFromToken(token);
+        String message = body.get("message");
+        var response = service.joinTeamLobby(id, username, message);
+        return ResponseEntity.ok(ApiResponse.of(200, "Joined team lobby", response));
+    }
+
+    @DeleteMapping("/{id}/team-requests")
+    public ResponseEntity<ApiResponse> leaveTeamLobby(@PathVariable Long id,
+            @RequestHeader("Authorization") String token) {
+        String username = getUsernameFromToken(token);
+        service.leaveTeamLobby(id, username);
+        return ResponseEntity.ok(ApiResponse.of(200, "Left team lobby", null));
+    }
+
+    @GetMapping("/{id}/team-requests")
+    public ResponseEntity<ApiResponse> getTeamRequests(@PathVariable Long id) {
+        var list = service.getTeamRequests(id);
+        return ResponseEntity.ok(ApiResponse.of(200, "OK", list));
+    }
+
+    @PostMapping("/{id}/insights")
+    public ResponseEntity<ApiResponse> addInsight(@PathVariable Long id,
+            @RequestHeader("Authorization") String token,
+            @RequestBody com.techconnect.opportunity.dto.InsightRequest request) {
+        String username = getUsernameFromToken(token);
+        var response = service.addInsight(id, username, request);
+        return ResponseEntity.ok(ApiResponse.of(200, "Insight added", response));
+    }
+
+    @GetMapping("/{id}/insights")
+    public ResponseEntity<ApiResponse> getInsights(@PathVariable Long id) {
+        var list = service.getInsights(id);
+        return ResponseEntity.ok(ApiResponse.of(200, "OK", list));
     }
 }

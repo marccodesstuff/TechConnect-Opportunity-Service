@@ -25,10 +25,20 @@ public class OpportunityServiceImpl implements OpportunityService {
 
     private final OpportunityRepository repository;
     private final TagRepository tagRepository;
+    private final com.techconnect.opportunity.repository.TeamRequestRepository teamRequestRepository;
+    private final com.techconnect.opportunity.repository.OpportunityInsightRepository insightRepository;
+    private final com.techconnect.opportunity.repository.UserRepository userRepository;
 
-    public OpportunityServiceImpl(OpportunityRepository repository, TagRepository tagRepository) {
+    public OpportunityServiceImpl(OpportunityRepository repository,
+            TagRepository tagRepository,
+            com.techconnect.opportunity.repository.TeamRequestRepository teamRequestRepository,
+            com.techconnect.opportunity.repository.OpportunityInsightRepository insightRepository,
+            com.techconnect.opportunity.repository.UserRepository userRepository) {
         this.repository = repository;
         this.tagRepository = tagRepository;
+        this.teamRequestRepository = teamRequestRepository;
+        this.insightRepository = insightRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -119,6 +129,86 @@ public class OpportunityServiceImpl implements OpportunityService {
                 .collect(Collectors.groupingBy(o -> o.getType().name(), Collectors.counting()));
 
         return new com.techconnect.opportunity.dto.AnalyticsStats(total, active, byType);
+    }
+
+    @Override
+    public com.techconnect.opportunity.dto.TeamRequestResponse joinTeamLobby(Long opportunityId, String username,
+            String message) {
+        Opportunity opp = repository.findById(opportunityId)
+                .orElseThrow(() -> new RuntimeException("Opportunity not found"));
+
+        if (opp.getType() != OpportunityType.HACKATHON) {
+            throw new RuntimeException("Team formation only available for Hackathons");
+        }
+
+        com.techconnect.opportunity.model.User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Check if already in lobby
+        if (teamRequestRepository.findByOpportunityIdAndUserId(opportunityId, user.getId()).isPresent()) {
+            throw new RuntimeException("User already in team lobby");
+        }
+
+        com.techconnect.opportunity.model.TeamRequest request = new com.techconnect.opportunity.model.TeamRequest(opp,
+                user, message);
+        request = teamRequestRepository.save(request);
+
+        return new com.techconnect.opportunity.dto.TeamRequestResponse(
+                request.getId(), request.getOpportunity().getId(), request.getUser().getUsername(),
+                request.getMessage(), request.getCreatedAt());
+    }
+
+    @Override
+    public void leaveTeamLobby(Long opportunityId, String username) {
+        com.techconnect.opportunity.model.User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        com.techconnect.opportunity.model.TeamRequest request = teamRequestRepository
+                .findByOpportunityIdAndUserId(opportunityId, user.getId())
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        teamRequestRepository.delete(request);
+    }
+
+    @Override
+    public List<com.techconnect.opportunity.dto.TeamRequestResponse> getTeamRequests(Long opportunityId) {
+        return teamRequestRepository.findByOpportunityId(opportunityId).stream()
+                .map(r -> new com.techconnect.opportunity.dto.TeamRequestResponse(
+                        r.getId(), r.getOpportunity().getId(), r.getUser().getUsername(), r.getMessage(),
+                        r.getCreatedAt()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public com.techconnect.opportunity.dto.InsightResponse addInsight(Long opportunityId, String username,
+            com.techconnect.opportunity.dto.InsightRequest request) {
+        Opportunity opp = repository.findById(opportunityId)
+                .orElseThrow(() -> new RuntimeException("Opportunity not found"));
+
+        if (opp.getType() == OpportunityType.HACKATHON) {
+            throw new RuntimeException("Insights not available for Hackathons");
+        }
+
+        com.techconnect.opportunity.model.User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        com.techconnect.opportunity.model.OpportunityInsight insight = new com.techconnect.opportunity.model.OpportunityInsight(
+                opp, user, request.verdict(), request.comment(), request.tags());
+
+        insight = insightRepository.save(insight);
+
+        return new com.techconnect.opportunity.dto.InsightResponse(
+                insight.getId(), insight.getOpportunity().getId(), insight.getUser().getUsername(),
+                insight.getVerdict(), insight.getComment(), insight.getTags(), insight.getCreatedAt());
+    }
+
+    @Override
+    public List<com.techconnect.opportunity.dto.InsightResponse> getInsights(Long opportunityId) {
+        return insightRepository.findByOpportunityId(opportunityId).stream()
+                .map(i -> new com.techconnect.opportunity.dto.InsightResponse(
+                        i.getId(), i.getOpportunity().getId(), i.getUser().getUsername(),
+                        i.getVerdict(), i.getComment(), i.getTags(), i.getCreatedAt()))
+                .collect(Collectors.toList());
     }
 
     private OpportunityResponse toResponse(Opportunity o) {
