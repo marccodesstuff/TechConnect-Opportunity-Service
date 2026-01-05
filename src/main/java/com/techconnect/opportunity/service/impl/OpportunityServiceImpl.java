@@ -3,12 +3,16 @@ package com.techconnect.opportunity.service.impl;
 import com.techconnect.opportunity.dto.OpportunityCreateRequest;
 import com.techconnect.opportunity.dto.OpportunityResponse;
 import com.techconnect.opportunity.model.Opportunity;
+import com.techconnect.opportunity.model.Tag;
 import com.techconnect.opportunity.repository.OpportunityRepository;
+import com.techconnect.opportunity.repository.TagRepository;
 import com.techconnect.opportunity.service.OpportunityService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -20,20 +24,34 @@ import org.springframework.util.StringUtils;
 public class OpportunityServiceImpl implements OpportunityService {
 
     private final OpportunityRepository repository;
+    private final TagRepository tagRepository;
 
-    public OpportunityServiceImpl(OpportunityRepository repository) {
+    public OpportunityServiceImpl(OpportunityRepository repository, TagRepository tagRepository) {
         this.repository = repository;
+        this.tagRepository = tagRepository;
     }
 
     @Override
     public OpportunityResponse create(OpportunityCreateRequest request) {
-        Opportunity opp = Opportunity.builder()
+        Opportunity.Builder builder = Opportunity.builder()
                 .title(request.title())
                 .description(request.description())
                 .startDate(request.startDate())
                 .endDate(request.endDate())
-                .type(request.type())
-                .build();
+                .type(request.type());
+
+        Opportunity opp = builder.build();
+
+        if (request.tags() != null && !request.tags().isEmpty()) {
+            Set<Tag> tags = new HashSet<>();
+            for (String tagName : request.tags()) {
+                Tag tag = tagRepository.findByName(tagName)
+                        .orElseGet(() -> tagRepository.save(new Tag(tagName)));
+                tags.add(tag);
+            }
+            opp.setTags(tags);
+        }
+
         Opportunity saved = repository.save(opp);
         return toResponse(saved);
     }
@@ -50,11 +68,18 @@ public class OpportunityServiceImpl implements OpportunityService {
     }
 
     @Override
-    public List<OpportunityResponse> search(String keyword, OpportunityType type) {
+    public List<OpportunityResponse> search(String keyword, OpportunityType type, String tag) {
         Specification<Opportunity> spec = Specification.where(null);
 
         if (type != null) {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("type"), type));
+        }
+
+        if (StringUtils.hasText(tag)) {
+            spec = spec.and((root, query, cb) -> {
+                query.distinct(true);
+                return cb.equal(root.join("tags").get("name"), tag);
+            });
         }
 
         if (StringUtils.hasText(keyword)) {
@@ -72,8 +97,20 @@ public class OpportunityServiceImpl implements OpportunityService {
         repository.deleteById(id);
     }
 
+    @Override
+    public com.techconnect.opportunity.dto.AnalyticsStats getStats() {
+        List<Opportunity> all = repository.findAll();
+        long total = all.size();
+        long active = all.stream().filter(o -> o.getEndDate().isAfter(java.time.LocalDate.now())).count();
+        java.util.Map<String, Long> byType = all.stream()
+                .collect(Collectors.groupingBy(o -> o.getType().name(), Collectors.counting()));
+
+        return new com.techconnect.opportunity.dto.AnalyticsStats(total, active, byType);
+    }
+
     private OpportunityResponse toResponse(Opportunity o) {
+        List<String> tags = o.getTags().stream().map(Tag::getName).collect(Collectors.toList());
         return new OpportunityResponse(o.getId(), o.getTitle(), o.getDescription(), o.getStartDate(), o.getEndDate(),
-                o.getType());
+                o.getType(), tags);
     }
 }

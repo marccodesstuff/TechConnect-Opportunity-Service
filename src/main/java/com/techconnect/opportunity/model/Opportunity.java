@@ -2,6 +2,8 @@ package com.techconnect.opportunity.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "opportunities")
@@ -27,10 +29,15 @@ public class Opportunity {
     @Column(nullable = false)
     private OpportunityType type;
 
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @JoinTable(name = "opportunity_tags", joinColumns = @JoinColumn(name = "opportunity_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+    private Set<Tag> tags = new HashSet<>();
+
     public Opportunity() {
     }
 
-    public Opportunity(Long id, String title, String description, LocalDate startDate, LocalDate endDate, OpportunityType type) {
+    public Opportunity(Long id, String title, String description, LocalDate startDate, LocalDate endDate,
+            OpportunityType type) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -87,6 +94,14 @@ public class Opportunity {
         this.type = type;
     }
 
+    public Set<Tag> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<Tag> tags) {
+        this.tags = tags;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -99,12 +114,38 @@ public class Opportunity {
         private LocalDate endDate;
         private OpportunityType type;
 
-        public Builder id(Long id) { this.id = id; return this; }
-        public Builder title(String title) { this.title = title; return this; }
-        public Builder description(String description) { this.description = description; return this; }
-        public Builder startDate(LocalDate startDate) { this.startDate = startDate; return this; }
-        public Builder endDate(LocalDate endDate) { this.endDate = endDate; return this; }
-        public Builder type(OpportunityType type) { this.type = type; return this; }
-        public Opportunity build() { return new Opportunity(id, title, description, startDate, endDate, type); }
+        public Builder id(Long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public Builder startDate(LocalDate startDate) {
+            this.startDate = startDate;
+            return this;
+        }
+
+        public Builder endDate(LocalDate endDate) {
+            this.endDate = endDate;
+            return this;
+        }
+
+        public Builder type(OpportunityType type) {
+            this.type = type;
+            return this;
+        }
+
+        public Opportunity build() {
+            return new Opportunity(id, title, description, startDate, endDate, type);
+        }
     }
 }

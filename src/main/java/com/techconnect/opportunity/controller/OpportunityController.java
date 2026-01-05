@@ -35,10 +35,11 @@ public class OpportunityController {
     @GetMapping
     public ResponseEntity<ApiResponse> list(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) com.techconnect.opportunity.model.OpportunityType type) {
+            @RequestParam(required = false) com.techconnect.opportunity.model.OpportunityType type,
+            @RequestParam(required = false) String tag) {
         List<OpportunityResponse> list;
-        if (keyword != null || type != null) {
-            list = service.search(keyword, type);
+        if (keyword != null || type != null || tag != null) {
+            list = service.search(keyword, type, tag);
         } else {
             list = service.listAll();
         }

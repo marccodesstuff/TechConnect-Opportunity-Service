@@ -12,7 +12,9 @@ public interface OpportunityService {
 
     List<OpportunityResponse> listAll();
 
-    List<OpportunityResponse> search(String keyword, OpportunityType type);
+    List<OpportunityResponse> search(String keyword, OpportunityType type, String tag);
 
     void delete(Long id);
+
+    com.techconnect.opportunity.dto.AnalyticsStats getStats();
 }
