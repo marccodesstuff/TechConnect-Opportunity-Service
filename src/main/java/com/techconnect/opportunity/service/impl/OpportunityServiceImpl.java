@@ -11,6 +11,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.jpa.domain.Specification;
+import com.techconnect.opportunity.model.OpportunityType;
+import org.springframework.util.StringUtils;
+
 @Service
 @Transactional
 public class OpportunityServiceImpl implements OpportunityService {
@@ -46,11 +50,30 @@ public class OpportunityServiceImpl implements OpportunityService {
     }
 
     @Override
+    public List<OpportunityResponse> search(String keyword, OpportunityType type) {
+        Specification<Opportunity> spec = Specification.where(null);
+
+        if (type != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("type"), type));
+        }
+
+        if (StringUtils.hasText(keyword)) {
+            String pattern = "%" + keyword.toLowerCase() + "%";
+            spec = spec.and((root, query, cb) -> cb.or(
+                    cb.like(cb.lower(root.get("title")), pattern),
+                    cb.like(cb.lower(root.get("description")), pattern)));
+        }
+
+        return repository.findAll(spec).stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    @Override
     public void delete(Long id) {
         repository.deleteById(id);
     }
 
     private OpportunityResponse toResponse(Opportunity o) {
-        return new OpportunityResponse(o.getId(), o.getTitle(), o.getDescription(), o.getStartDate(), o.getEndDate(), o.getType());
+        return new OpportunityResponse(o.getId(), o.getTitle(), o.getDescription(), o.getStartDate(), o.getEndDate(),
+                o.getType());
     }
 }

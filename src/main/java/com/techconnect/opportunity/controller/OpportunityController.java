@@ -33,8 +33,15 @@ public class OpportunityController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse> list() {
-        List<OpportunityResponse> list = service.listAll();
+    public ResponseEntity<ApiResponse> list(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) com.techconnect.opportunity.model.OpportunityType type) {
+        List<OpportunityResponse> list;
+        if (keyword != null || type != null) {
+            list = service.search(keyword, type);
+        } else {
+            list = service.listAll();
+        }
         return ResponseEntity.ok(ApiResponse.of(200, "OK", list));
     }
 
