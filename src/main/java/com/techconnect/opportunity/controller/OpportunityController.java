@@ -50,4 +50,15 @@ public class OpportunityController {
         service.delete(id);
         return ResponseEntity.ok(ApiResponse.of(200, "Deleted", null));
     }
+
+    @PostMapping("/{id}/favorite")
+    public ResponseEntity<ApiResponse> addFavorite(@PathVariable Long id,
+            @RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(ApiResponse.of(200, "Added to favorites", null));
+    }
+
+    @DeleteMapping("/{id}/favorite")
+    public ResponseEntity<ApiResponse> removeFavorite(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.of(200, "Removed from favorites", null));
+    }
 }
