@@ -20,9 +20,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-                                                                  HttpHeaders headers,
-                                                                  HttpStatusCode status,
-                                                                  WebRequest request) {
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String field = ((FieldError) error).getField();
@@ -40,6 +40,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse> handleRuntime(RuntimeException ex) {
         return ResponseEntity.status(404).body(ApiResponse.of(404, ex.getMessage(), null));
+    }
+
+    @ExceptionHandler(com.techconnect.opportunity.exception.DuplicateOpportunityException.class)
+    public ResponseEntity<ApiResponse> handleDuplicate(
+            com.techconnect.opportunity.exception.DuplicateOpportunityException ex) {
+        return ResponseEntity.status(409).body(ApiResponse.of(409, ex.getMessage(), null));
     }
 
     @ExceptionHandler(Exception.class)

@@ -33,9 +33,22 @@ public class OpportunityServiceImpl implements OpportunityService {
 
     @Override
     public OpportunityResponse create(OpportunityCreateRequest request) {
+        // Duplicate Check
+        List<Opportunity> existing = repository.findAll(); // Optimization: In real app, filter by provider/date
+        for (Opportunity o : existing) {
+            if (com.techconnect.opportunity.util.SimilarityUtil.calculateSimilarity(o.getTitle(), request.title()) > 0.8
+                    &&
+                    com.techconnect.opportunity.util.SimilarityUtil.calculateSimilarity(o.getProvider(),
+                            request.provider()) > 0.8) {
+                throw new com.techconnect.opportunity.exception.DuplicateOpportunityException(
+                        "Duplicate opportunity detected: " + o.getTitle());
+            }
+        }
+
         Opportunity.Builder builder = Opportunity.builder()
                 .title(request.title())
                 .description(request.description())
+                .provider(request.provider())
                 .startDate(request.startDate())
                 .endDate(request.endDate())
                 .type(request.type());
@@ -110,7 +123,8 @@ public class OpportunityServiceImpl implements OpportunityService {
 
     private OpportunityResponse toResponse(Opportunity o) {
         List<String> tags = o.getTags().stream().map(Tag::getName).collect(Collectors.toList());
-        return new OpportunityResponse(o.getId(), o.getTitle(), o.getDescription(), o.getStartDate(), o.getEndDate(),
+        return new OpportunityResponse(o.getId(), o.getTitle(), o.getDescription(), o.getProvider(), o.getStartDate(),
+                o.getEndDate(),
                 o.getType(), tags);
     }
 }

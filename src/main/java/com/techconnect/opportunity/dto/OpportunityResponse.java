@@ -5,11 +5,12 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record OpportunityResponse(
-                Long id,
-                String title,
-                String description,
-                LocalDate startDate,
-                LocalDate endDate,
-                OpportunityType type,
-                List<String> tags) {
+        Long id,
+        String title,
+        String description,
+        String provider,
+        LocalDate startDate,
+        LocalDate endDate,
+        OpportunityType type,
+        List<String> tags) {
 }

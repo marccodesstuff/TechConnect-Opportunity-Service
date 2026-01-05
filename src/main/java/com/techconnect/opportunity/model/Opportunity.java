@@ -19,6 +19,9 @@ public class Opportunity {
     @Column(columnDefinition = "text")
     private String description;
 
+    @Column(nullable = false)
+    private String provider;
+
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
@@ -70,6 +73,14 @@ public class Opportunity {
         this.description = description;
     }
 
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
     public LocalDate getStartDate() {
         return startDate;
     }
@@ -113,6 +124,7 @@ public class Opportunity {
         private LocalDate startDate;
         private LocalDate endDate;
         private OpportunityType type;
+        private String provider;
 
         public Builder id(Long id) {
             this.id = id;
@@ -144,8 +156,15 @@ public class Opportunity {
             return this;
         }
 
+        public Builder provider(String provider) {
+            this.provider = provider;
+            return this;
+        }
+
         public Opportunity build() {
-            return new Opportunity(id, title, description, startDate, endDate, type);
+            Opportunity op = new Opportunity(id, title, description, startDate, endDate, type);
+            op.setProvider(provider);
+            return op;
         }
     }
 }
